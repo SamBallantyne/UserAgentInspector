@@ -22,7 +22,7 @@ if (!window.console) {
 /*
 	Series of tests to validate the browser's user-agent. 
 	Works by checking whether certain elements and methods are defined.
-	Prioritizes returning false ASAP. If browser checks out, returns true.
+	Uses a tracking pixel. Function is called using window.onload
 */
 function validateBrowserUserAgent () {
 
@@ -73,8 +73,6 @@ function validateBrowserUserAgent () {
 	function userAgentContainsString(str) {
 		return userAgent.indexOf(str) >= 0;
 	}
-
-
 
 	/*
 		Create a flag to track whether the user agent matches a valid vendor. If 
@@ -164,9 +162,7 @@ function validateBrowserUserAgent () {
 
 
 	/*
-		CHROME tests.
-
-		Supports Chrome versions back to 
+		CHROME tests
 	*/
 	if (userAgentContainsString(chromeTestString || userAgentContainsString(chromeiOSTestString)) && !userAgentContainsString(operaPre15TestString) && !userAgentContainsString(operaPost15TestString)) {
 
@@ -190,14 +186,14 @@ function validateBrowserUserAgent () {
 
 		/*
 			Check support for MathML. Honestly, this is all that needs to be done.
-			Support for MathML is limited to Firefox and rence desktop Safari.
+			Support for MathML is limited to Firefox and recent desktop Safari.
 		*/
 		var mathContainer = document.createElement('div');
 		document.body.appendChild(mathContainer);
-	    mathContainer.innerHTML = '<math></math>';
-	    var mathMLSupported = mathContainer.firstChild && "namespaceURI" in mathContainer.firstChild && mathContainer.firstChild.namespaceURI == 'http://www.w3.org/1998/Math/MathML';
-       	checkBrowserFeature(mathMLSupported, 'MathML not supported.');
-       	document.body.removeChild(mathContainer);
+		mathContainer.innerHTML = '<math></math>';
+		var mathMLSupported = mathContainer.firstChild && "namespaceURI" in mathContainer.firstChild && mathContainer.firstChild.namespaceURI == 'http://www.w3.org/1998/Math/MathML';
+		checkBrowserFeature(mathMLSupported, 'MathML not supported.');
+		document.body.removeChild(mathContainer);
 
        	/*
        		Other features
@@ -245,7 +241,7 @@ function validateBrowserUserAgent () {
 	checkBrowserFeature(userAgentMatchesValidVendor, 'User Agent did not match any valid vendor');
 
 	/*
-		If the user agent is still valid. Set up a tracking pixel for that
+		If the user agent is still valid. Set up a tracking pixel for that lets us know it's passed the test.
 	*/
 	if (browserUserAgentIsValid)
 		createTrackingMessage('Browser is valid', true);
