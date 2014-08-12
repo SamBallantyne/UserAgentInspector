@@ -1,0 +1,271 @@
+
+
+
+<!doctype html>
+<html>
+<head>
+</head>
+<body>
+<script>
+
+
+/*
+	For IE8, which doesn't "activate" the console object until developer tools are open.
+	console is undefined, so calling console.log() throws a reference error. 
+*/
+if (!window.console) {
+	console = {};
+	console.log = function (message) {};
+}
+
+
+/*
+	Series of tests to validate the browser's user-agent. 
+	Works by checking whether certain elements and methods are defined.
+	Prioritizes returning false ASAP. If browser checks out, returns true.
+*/
+function validateBrowserUserAgent () {
+
+	var browserUserAgentIsValid = true;
+
+	function createTrackingMessage (message, browserUserAgentValidityFlag) {
+		if (browserUserAgentValidityFlag === false)
+			browserUserAgentIsValid = false;
+		var trackingMessageElement = document.createElement('img');
+		trackingMessageElement.style.width = '1px';
+		trackingMessageElement.style.height = '1px';
+		trackingMessageElement.src = 'track.png?msg=' + encodeURIComponent(message) + '&status=' + browserUserAgentValidityFlag;
+		document.body.appendChild(trackingMessageElement);
+	}
+
+	function checkBrowserFeature (browserPassedTest, failureMessage) {
+		if (!browserPassedTest)
+			createTrackingMessage(failureMessage, false);
+	}
+
+	/*
+		Basics
+	*/
+	var userAgent = navigator.userAgent.toLowerCase();
+	console.log('User Agent: ' + userAgent);
+
+	/*
+		If there's no user agent string, just assume something fishy is going on.
+	*/
+	if (!userAgent) {
+		console.log('There no user agent string.');
+		return false;
+	}
+
+	/*
+		Test strings to identify user agent. 
+		Notes: 
+			1. Chrome has two, one for iOS and one for elsewhere.
+			2. Opera uses two test strings, one for before v 15 and one for after.
+			3. Tests for Chrome also have to test for Opera.
+			4. Tests for safari need to also test for for Chrome.
+				i.e. userAgentContainsString(safariTestString) && !userAgentContainsString(chromeTestString) && !userAgentContainsString(chromeiOSTestString)
+	*/
+	var chromeTestString = 'chrome';
+	var chromeiOSTestString = 'crios';
+	var ieTestString = 'msie';
+	var firefoxTestString = 'firefox';
+	var operaPre15TestString = 'opera';
+	var operaPost15TestString = 'opr';
+	var safariTestString = 'safari';
+	var mobileTestString = 'mobile';
+	var blackberryTestString = 'blackberry';
+	var androidTestString = 'android';
+
+	function userAgentContainsString(str) {
+		return userAgent.indexOf(str) >= 0;
+	}
+
+
+
+	/*
+		Create a flag to track whether the user agent matches a valid vendor. If 
+		it doesn't, most of the tests won't run, and we'll return false.
+	*/
+	var userAgentMatchesValidVendor = false;
+
+
+	/*
+		WISC tests (internet explorer pretending not to be internet explorer). This is
+		more-or-less the low-hanging-fruit.
+
+		We use a few different tests, since html5 shivs sometimes get in the way.
+	*/
+	if (!userAgentContainsString(ieTestString)) {
+
+		checkBrowserFeature(window.ActiveXObject === undefined, 'ActiveXObject was not undefined.');
+		checkBrowserFeature(window.isSearchProviderInstalled === undefined, 'isSearchProviderInstalled function was defined (it should not be).');
+		checkBrowserFeature(window.atob !== undefined, 'Base64 encoding option was undefined.');
+		checkBrowserFeature(window.HTMLCanvasElement !== undefined, 'Canvas element was undefined.');
+	}
+
+	
+	/*
+		INTERNET EXPLORER tests
+	*/
+	if (userAgentContainsString(ieTestString)) {
+
+		userAgentMatchesValidVendor = true;
+
+		/*
+			IE 11
+		*/ 
+		if (userAgentContainsString('rv:11')) {
+
+			checkBrowserFeature(window.MutationObserver !== undefined, 'MutationObservers are defined in IE11.');
+			checkBrowserFeature(document.documentElement.msRequestFullScreen !== undefined, 'Full Screen API should be supported in IE11.');
+			checkBrowserFeature(document.body.dataset !== undefined, 'Dataset property of HTML elements should be supported in IE11.');
+		}
+
+		/*
+			IE 10
+		*/
+		if (userAgentContainsString('msie 10')) {
+
+			checkBrowserFeature(window.atob !== undefined, 'Base64 encoding should be defined in IE10.');
+			checkBrowserFeature(window.requestAnimationFrame !== undefined, 'requestAnimationFrame should be defined in IE10.');
+			checkBrowserFeature(window.performance !== undefined, 'High Resolution Timing API should be defined in IE10.');
+		}
+
+		/* 
+			IE 9
+		*/
+		if (userAgentContainsString('msie 9')) {
+
+			checkBrowserFeature(window.getComputedStyle !== undefined, 'getComputedStyle should be defined.');
+			checkBrowserFeature(navigator.geolocation !== undefined, 'Geolocation should be defined.');
+			checkBrowserFeature(window.HTMLCanvasElement !== undefined, 'Canvas should be defined.');
+			checkBrowserFeature(window.HTMLAudioElement !== undefined, 'Canvas should be defined.');
+		}
+
+		/*
+			IE 8
+		*/
+		if (userAgentContainsString('msie 8')) {
+
+			/*
+				This doesn't work if the browser isn't in standards mode.
+			checkBrowserFeature(window.JSON !== undefined || window.JSON.parse !== undefined, 'JSON parsing should be defined.');
+			*/
+
+			// Local Storage
+			checkBrowserFeature(window.localStorage !== undefined, 'Local storage should be defined.');
+			checkBrowserFeature(window.sessionStorage !== undefined, 'Session storage should be defined.');
+		}
+	}
+
+
+
+	/*
+		OPERA tests
+	*/
+	if (userAgentContainsString(operaPre15TestString) || userAgentContainsString(operaPost15TestString)) {
+
+		userAgentMatchesValidVendor = true; 
+
+		checkBrowserFeature(window.opera !== undefined || window.opr !== undefined, 'Hmmmm. That is not right. Window.opera should defo be defined.');
+	}
+
+
+
+
+	/*
+		CHROME tests.
+
+		Supports Chrome versions back to 
+	*/
+	if (userAgentContainsString(chromeTestString || userAgentContainsString(chromeiOSTestString)) && !userAgentContainsString(operaPre15TestString) && !userAgentContainsString(operaPost15TestString)) {
+
+		userAgentMatchesValidVendor = true;
+
+		checkBrowserFeature(window.MessageChannel !== undefined, 'MessageChannel was undefined.');
+		checkBrowserFeature(window.EventSource !== undefined, 'EventSource was undefined.');
+		checkBrowserFeature(userAgentContainsString(mobileTestString) || window.webkitNotifications !== undefined || window.Notification !== undefined, 'Notifications are undefined.');
+		checkBrowserFeature(userAgentContainsString(mobileTestString) || window.SharedWorker !== undefined, 'Notifications are undefined.');
+	}
+
+
+
+
+	/*
+		FIREFOX tests
+	*/
+	if (userAgentContainsString(firefoxTestString)) {
+
+		userAgentMatchesValidVendor = true;
+
+		/*
+			Check support for MathML. Honestly, this is all that needs to be done.
+			Support for MathML is limited to Firefox and rence desktop Safari.
+		*/
+		var mathContainer = document.createElement('div');
+		document.body.appendChild(mathContainer);
+	    mathContainer.innerHTML = '<math></math>';
+	    var mathMLSupported = mathContainer.firstChild && "namespaceURI" in mathContainer.firstChild && mathContainer.firstChild.namespaceURI == 'http://www.w3.org/1998/Math/MathML';
+       	checkBrowserFeature(mathMLSupported, 'MathML not supported.');
+       	document.body.removeChild(mathContainer);
+
+       	/*
+       		Other features
+       	*/
+       	checkBrowserFeature(window.DeviceProximityEvent !== undefined, 'Device Proximity API should be defined in Firefox from 15 on.');
+       	checkBrowserFeature(navigator.battery !== undefined || navigator.mozBattery !== undefined || navigator.webkitBattery !== undefined, 'Battery API should be defined in Firefox.');
+	}
+
+
+
+	/*
+		ANDROID STOCK Tests
+	*/
+	if (userAgentContainsString(androidTestString)) {
+
+		userAgentMatchesValidVendor = true;
+	}
+
+
+
+	/*
+		BLACKBERRY Tests
+	*/
+	if (userAgentContainsString(blackberryTestString)) {
+
+		userAgentMatchesValidVendor = true;
+	}
+
+
+
+	/*
+		SAFARI Tests
+	*/
+	if (userAgentContainsString(safariTestString) && !userAgentContainsString(chromeTestString) && !userAgentContainsString(chromeiOSTestString)) {
+
+		userAgentMatchesValidVendor = true; 
+
+		checkBrowserFeature(window.HTMLDataListElement === undefined, 'Datalist element was defined, and should not be.');
+	}
+
+	/*
+		Check to make sure the browser has matched a valid vendor. This stops malware from writing
+		a totally crazy user agent, thereby avoiding the browser-specific tests above.
+	*/
+	checkBrowserFeature(userAgentMatchesValidVendor, 'User Agent did not match any valid vendor');
+
+	/*
+		If the user agent is still valid. Set up a tracking pixel for that
+	*/
+	if (browserUserAgentIsValid)
+		createTrackingMessage('Browser is valid', true);
+}
+
+
+window.onload = validateBrowserUserAgent;
+
+</script>
+</body>
+</html>
+
