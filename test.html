@@ -15,7 +15,7 @@
 */
 if (!window.console) {
 	console = {};
-	console.log = function (message) {};
+	console.log = function () {};
 }
 
 
@@ -47,19 +47,12 @@ function validateBrowserUserAgent () {
 		Basics
 	*/
 	var userAgent = navigator.userAgent.toLowerCase();
-	console.log('User Agent: ' + userAgent);
-
-	/*
-		If there's no user agent string, just assume something fishy is going on.
-	*/
-	if (!userAgent) {
-		console.log('There no user agent string.');
-		return false;
-	}
+	checkBrowserFeature(userAgent !== null, 'user-agent string was invalid.');
 
 	/*
 		Test strings to identify user agent. 
 		Notes: 
+			0. There are probably false positives with android mobile.
 			1. Chrome has two, one for iOS and one for elsewhere.
 			2. Opera uses two test strings, one for before v 15 and one for after.
 			3. Tests for Chrome also have to test for Opera.
@@ -148,12 +141,8 @@ function validateBrowserUserAgent () {
 		*/
 		if (userAgentContainsString('msie 8')) {
 
-			/*
-				This doesn't work if the browser isn't in standards mode.
-			checkBrowserFeature(window.JSON !== undefined || window.JSON.parse !== undefined, 'JSON parsing should be defined.');
-			*/
-
-			// Local Storage
+			// This doesn't work if the browser isn't in standards mode.
+			// checkBrowserFeature(window.JSON !== undefined || window.JSON.parse !== undefined, 'JSON parsing should be defined.');
 			checkBrowserFeature(window.localStorage !== undefined, 'Local storage should be defined.');
 			checkBrowserFeature(window.sessionStorage !== undefined, 'Session storage should be defined.');
 		}
